@@ -1,0 +1,224 @@
+---
+interface Props {
+	title?: string;
+	description?: string;
+}
+
+const {
+	title = "Leviathan Consulting Group | Fractional CTO & AI Customer Engagement",
+	description = "Transform your technology strategy with flexible Fractional CTO services and AI-driven customer engagement solutions. Where AI meets integrity. Serving startups and OPE dealers."
+} = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="icon" type="image/png" href="/lcg_logo_high_res.png" />
+		<meta name="generator" content={Astro.generator} />
+
+		<title>{title}</title>
+		<meta name="description" content={description} />
+		<meta name="keywords" content="fractional CTO, CTO services, AI consulting, customer engagement, OPE software, technology leadership, Lizzy Connect, My Lizzy DMS, enterprise technology, AI governance" />
+
+		<link rel="canonical" href={canonicalURL} />
+
+		<meta property="og:type" content="website" />
+		<meta property="og:url" content={canonicalURL} />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:image" content={new URL('/lcg_logo_high_res.png', Astro.site)} />
+
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:url" content={canonicalURL} />
+		<meta name="twitter:title" content={title} />
+		<meta name="twitter:description" content={description} />
+		<meta name="twitter:image" content={new URL('/lcg_logo_high_res.png', Astro.site)} />
+
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+		<script type="application/ld+json">
+		{
+			"@context": "https://schema.org",
+			"@type": "Organization",
+			"name": "Leviathan Consulting Group LLC",
+			"url": "https://leviathanconsultinggroup.com",
+			"logo": "https://leviathanconsultinggroup.com/lcg_logo_high_res.png",
+			"description": "Enterprise Tech and AI Solution Execution & Adoption, delivered with precision",
+			"address": {
+				"@type": "PostalAddress",
+				"addressLocality": "Rancho Mission Viejo",
+				"addressRegion": "CA"
+			},
+			"contactPoint": {
+				"@type": "ContactPoint",
+				"telephone": "+1-206-290-1063",
+				"email": "jlevien@leviathanconsultinggroup.com",
+				"contactType": "Customer Service"
+			},
+			"sameAs": [
+				"https://www.linkedin.com/company/110250308/"
+			]
+		}
+		</script>
+	</head>
+	<body>
+		<slot />
+	</body>
+</html>
+
+<style is:global>
+	:root {
+		--color-navy-dark: #0d1b2a;
+		--color-navy: #1a2332;
+		--color-navy-light: #2c3e50;
+		--color-blue-electric: #0088cc;
+		--color-blue-bright: #00aaff;
+		--color-gray-storm: #6c7a89;
+		--color-gray-light: #95a5a6;
+		--color-white: #ffffff;
+		--color-gray-bg: #f8f9fa;
+
+		--font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+		--transition-speed: 0.3s;
+		--border-radius: 8px;
+		--shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+		--shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+		--shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+	}
+
+	* {
+		box-sizing: border-box;
+		margin: 0;
+		padding: 0;
+	}
+
+	html {
+		scroll-behavior: smooth;
+	}
+
+	body {
+		font-family: var(--font-family);
+		font-size: 16px;
+		line-height: 1.6;
+		color: var(--color-navy-light);
+		background-color: var(--color-white);
+		margin: 0;
+		width: 100%;
+		min-height: 100vh;
+	}
+
+	h1, h2, h3, h4, h5, h6 {
+		font-weight: 700;
+		line-height: 1.2;
+		color: var(--color-navy);
+		margin-bottom: 1rem;
+	}
+
+	h1 {
+		font-size: 3.5rem;
+		font-weight: 800;
+	}
+
+	h2 {
+		font-size: 2.5rem;
+	}
+
+	h3 {
+		font-size: 1.75rem;
+	}
+
+	p {
+		margin-bottom: 1rem;
+	}
+
+	a {
+		color: var(--color-blue-electric);
+		text-decoration: none;
+		transition: color var(--transition-speed) ease;
+	}
+
+	a:hover {
+		color: var(--color-blue-bright);
+	}
+
+	.container {
+		max-width: 1400px;
+		margin: 0 auto;
+		padding: 0 2rem;
+	}
+
+	.section {
+		padding: 100px 0;
+	}
+
+	.section-alt {
+		background-color: var(--color-gray-bg);
+	}
+
+	.btn {
+		display: inline-block;
+		padding: 14px 32px;
+		font-size: 1rem;
+		font-weight: 600;
+		text-align: center;
+		border-radius: var(--border-radius);
+		transition: all var(--transition-speed) ease;
+		cursor: pointer;
+		border: none;
+		text-decoration: none;
+		font-family: var(--font-family);
+	}
+
+	.btn-primary {
+		background-color: var(--color-blue-electric);
+		color: var(--color-white);
+		box-shadow: var(--shadow-md);
+	}
+
+	.btn-primary:hover {
+		background-color: var(--color-blue-bright);
+		transform: translateY(-2px);
+		box-shadow: var(--shadow-lg);
+		color: var(--color-white);
+	}
+
+	.btn-secondary {
+		background-color: transparent;
+		color: var(--color-blue-electric);
+		border: 2px solid var(--color-blue-electric);
+	}
+
+	.btn-secondary:hover {
+		background-color: var(--color-blue-electric);
+		color: var(--color-white);
+	}
+
+	@media (max-width: 768px) {
+		h1 {
+			font-size: 2.5rem;
+		}
+
+		h2 {
+			font-size: 2rem;
+		}
+
+		h3 {
+			font-size: 1.5rem;
+		}
+
+		.section {
+			padding: 60px 0;
+		}
+
+		.container {
+			padding: 0 1.5rem;
+		}
+	}
+</style>
