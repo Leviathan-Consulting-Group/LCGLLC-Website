@@ -5,8 +5,8 @@ interface Props {
 }
 
 const {
-	title = "Leviathan Consulting Group | Fractional CTO & AI Customer Engagement",
-	description = "Transform your technology strategy with flexible Fractional CTO services and AI-driven customer engagement solutions. Where AI meets integrity. Serving startups and OPE dealers."
+	title = "Leviathan Consulting Group | AI Customer Engagement & Enterprise Technology",
+	description = "Transform your technology strategy with AI-driven customer engagement solutions and enterprise technology execution. Where AI meets integrity. Serving startups and OPE dealers."
 } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
@@ -22,7 +22,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
 		<title>{title}</title>
 		<meta name="description" content={description} />
-		<meta name="keywords" content="fractional CTO, CTO services, AI consulting, customer engagement, OPE software, technology leadership, Lizzy Connect, My Lizzy DMS, enterprise technology, AI governance" />
+		<meta name="keywords" content="AI consulting, customer engagement, OPE software, technology leadership, Lizzy Connect, My Lizzy DMS, enterprise technology, AI governance" />
 
 		<link rel="canonical" href={canonicalURL} />
 
