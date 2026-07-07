@@ -154,11 +154,12 @@ import Navigation from '../components/Navigation.astro';
 				</p>
 
 				<h3>How customers opt in</h3>
-				<p>Customers provide consent to receive SMS messages in one of two ways:</p>
-				<ul class="sms-terms-list">
-					<li><strong>Directly with the dealer.</strong> A customer gives consent to the dealer (for example, verbally at the point of sale or service). The customer then receives a one-time welcome text and confirms by replying <strong>YES</strong> before any further messages are sent.</li>
-					<li><strong>By texting first.</strong> A customer starts the conversation by texting the dealer's number, and confirms opt-in before the self-service workflow begins.</li>
-				</ul>
+				<p>Customers opt in through a single workflow:</p>
+				<ol class="sms-terms-list">
+					<li>At the point of sale or service, the dealer asks whether the customer would like to use the SMS self-service program and records the customer's consent along with their mobile number.</li>
+					<li>After consent is captured, the customer receives a one-time welcome text from the dealer's number. It identifies the dealer, describes the service (order parts, schedule service, and troubleshoot equipment by text), states that message frequency varies, notes that message and data rates may apply, includes "Reply HELP for help" and "Reply STOP to opt out," and links to the Terms and Conditions and Privacy Policy.</li>
+					<li>The customer confirms enrollment by replying <strong>YES</strong> (START and JOIN are also accepted). No further messages are sent unless the customer replies to confirm.</li>
+				</ol>
 
 				<h3>What to expect</h3>
 				<ul class="sms-terms-list">
