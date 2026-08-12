@@ -1,0 +1,230 @@
+---
+/**
+ * Dealer self-onboarding — PREVIEW PAGE (GF-7 / #137).
+ *
+ * Not linked from the main navigation on purpose: this is a prototype for
+ * review, reachable only by URL until the flow is agreed and the backend behind
+ * it exists (see the Dealer Self-Onboarding epic, US-ONB-01…15).
+ */
+import Layout from '../layouts/Layout.astro';
+import Navigation from '../components/Navigation.astro';
+import OnboardingWizard from '../components/OnboardingWizard.astro';
+---
+
+<Layout
+  title="Get Started with Lizzy Connect | Leviathan Consulting Group"
+  description="Set up text-message self-service for your dealership. Customers order parts, book service, and troubleshoot equipment by texting the number they already call."
+>
+  <Navigation />
+
+  <section class="onboarding-hero">
+    <div class="container">
+      <p class="preview-flag">Preview — not yet live</p>
+      <h1 class="onboarding-title">Let your customers text you</h1>
+      <p class="onboarding-subtitle">
+        Parts orders, service bookings, and equipment troubleshooting — handled by text, on the
+        number your customers already call.
+      </p>
+      <div class="onboarding-facts">
+        <div class="fact">
+          <strong>~20 min</strong>
+          <span>to set up</span>
+        </div>
+        <div class="fact">
+          <strong>Same number</strong>
+          <span>your voice line is untouched</span>
+        </div>
+        <div class="fact">
+          <strong>Your data</strong>
+          <span>customers and equipment from Lizzy</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section onboarding-section">
+    <div class="container">
+      <OnboardingWizard />
+    </div>
+  </section>
+
+  <section class="section section-alt">
+    <div class="container">
+      <h2 class="section-title">What happens after you finish</h2>
+      <div class="after-grid">
+        <div class="after-card">
+          <span class="after-step">1</span>
+          <h3>We prepare your number</h3>
+          <p>
+            We handle the carrier paperwork that lets a business send texts, and submit it on your
+            behalf. Review usually takes a few days.
+          </p>
+        </div>
+        <div class="after-card">
+          <span class="after-step">2</span>
+          <h3>Your customers get an invitation</h3>
+          <p>
+            Once approved, each customer receives a single text explaining the service and asking
+            them to reply YES. Nobody is messaged without opting in.
+          </p>
+        </div>
+        <div class="after-card">
+          <span class="after-step">3</span>
+          <h3>The agent starts answering</h3>
+          <p>
+            It knows who is texting and what equipment they own, so it can go straight to the right
+            parts, the right repair pricing, and the right service slot.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <p class="footer-line">
+        <a href="/">Leviathan Consulting Group</a> · Where AI Meets Integrity
+      </p>
+      <p class="footer-legal">
+        <a href="/LizzyConnect_Terms_and_Conditions.pdf">Terms &amp; Conditions</a>
+        ·
+        <a href="/LizzyConnect_Privacy_Policy.pdf">Privacy Policy</a>
+        ·
+        <a href="/#sms-terms">SMS Program</a>
+      </p>
+    </div>
+  </footer>
+</Layout>
+
+<style>
+  .onboarding-hero {
+    padding: 180px 0 80px;
+    background: linear-gradient(135deg, var(--color-navy-dark) 0%, var(--color-navy) 55%, var(--color-navy-light) 100%);
+    color: var(--color-white);
+    text-align: center;
+  }
+
+  .preview-flag {
+    display: inline-block;
+    padding: 0.35rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.85);
+    margin-bottom: 1.5rem;
+  }
+
+  .onboarding-title {
+    color: var(--color-white);
+    margin-bottom: 1rem;
+  }
+
+  .onboarding-subtitle {
+    font-size: 1.25rem;
+    color: rgba(255, 255, 255, 0.85);
+    max-width: 680px;
+    margin: 0 auto 3rem;
+  }
+
+  .onboarding-facts {
+    display: flex;
+    justify-content: center;
+    gap: 3.5rem;
+    flex-wrap: wrap;
+  }
+
+  .fact {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .fact strong {
+    font-size: 1.5rem;
+    color: var(--color-blue-bright);
+  }
+
+  .fact span {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .onboarding-section {
+    padding-top: 80px;
+  }
+
+  .after-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    margin-top: 3rem;
+  }
+
+  .after-card {
+    background: var(--color-white);
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+  }
+
+  .after-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .after-step {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--color-blue-electric);
+    color: var(--color-white);
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+
+  .after-card h3 {
+    font-size: 1.25rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .after-card p {
+    color: var(--color-gray-storm);
+    margin: 0;
+  }
+
+  .footer {
+    background: var(--color-navy-dark);
+    color: rgba(255, 255, 255, 0.7);
+    padding: 3rem 0;
+    text-align: center;
+  }
+
+  .footer-line {
+    margin-bottom: 0.5rem;
+  }
+
+  .footer a {
+    color: var(--color-blue-bright);
+  }
+
+  .footer-legal {
+    font-size: 0.9rem;
+    margin: 0;
+  }
+
+  @media (max-width: 768px) {
+    .onboarding-hero {
+      padding: 140px 0 60px;
+    }
+
+    .onboarding-facts {
+      gap: 2rem;
+    }
+  }
+</style>

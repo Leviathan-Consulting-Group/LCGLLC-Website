@@ -1,0 +1,723 @@
+---
+/**
+ * Dealer self-onboarding wizard — CLICKABLE PREVIEW (GF-7 / #137).
+ *
+ * A front-end prototype of the flow specced in the Dealer Self-Onboarding epic
+ * (US-ONB-01…15). Nothing here talks to a backend: no account is created, no
+ * Lizzy credentials are sent anywhere, no dealer record is written. It exists so
+ * the flow can be walked through and argued about before any of it is built.
+ *
+ * Structure follows the three stages Jonathan set out:
+ *   A. Number Porting        -> step "phone"
+ *   B. Minimum to Enroll     -> steps "account", "dealership", "lizzy", "import"
+ *   C. Complete Full Onboarding -> offered at the end as the "full" path
+ *
+ * The step list is deliberately shown up front with a time estimate — his
+ * requirement from the 2026-06-24 call was that dealers must never feel trapped
+ * mid-flow.
+ */
+
+const steps = [
+  {
+    id: 'account',
+    stage: 'Account',
+    title: 'Create your account',
+    blurb: 'So you can save your progress and come back later.',
+  },
+  {
+    id: 'dealership',
+    stage: 'Your business',
+    title: 'Tell us about your dealership',
+    blurb: 'Name, hours, and the brands you sell and service.',
+  },
+  {
+    id: 'phone',
+    stage: 'Your number',
+    title: 'Add texting to your phone number',
+    blurb: 'Keep the number your customers already call.',
+  },
+  {
+    id: 'lizzy',
+    stage: 'Your data',
+    title: 'Connect your Lizzy account',
+    blurb: 'So we can bring in your customers and their equipment.',
+  },
+  {
+    id: 'import',
+    stage: 'Your data',
+    title: 'Import customers & equipment',
+    blurb: 'Runs in the background — usually a few minutes.',
+  },
+  {
+    id: 'finish',
+    stage: 'Go live',
+    title: 'Choose how you start',
+    blurb: 'Go live on our defaults, or fine-tune everything first.',
+  },
+];
+---
+
+<div class="wizard" id="wizard" data-total={steps.length}>
+  <!-- Up-front overview: every step visible before the dealer commits -->
+  <ol class="wizard-steps" id="wizardSteps">
+    {steps.map((step, i) => (
+      <li class="wizard-step" data-index={i}>
+        <span class="step-marker">{i + 1}</span>
+        <span class="step-text">
+          <span class="step-stage">{step.stage}</span>
+          <span class="step-title">{step.title}</span>
+        </span>
+      </li>
+    ))}
+  </ol>
+
+  <div class="wizard-panel">
+    <div class="wizard-progress">
+      <div class="wizard-progress-bar"><span id="progressFill"></span></div>
+      <p class="wizard-progress-label">
+        Step <strong id="progressNow">1</strong> of {steps.length}
+        <span class="wizard-progress-time">· about 20 minutes in total</span>
+      </p>
+    </div>
+
+    {/* ── Step 1: account ─────────────────────────────────────────── */}
+    <section class="wizard-card is-active" data-step="account">
+      <h3>Create your account</h3>
+      <p class="wizard-lede">You can stop at any point and pick up where you left off.</p>
+      <div class="field-grid">
+        <div class="form-group">
+          <label for="ob-email">Work email</label>
+          <input type="email" id="ob-email" placeholder="you@yourdealership.com" />
+        </div>
+        <div class="form-group">
+          <label for="ob-password">Password</label>
+          <input type="password" id="ob-password" placeholder="At least 12 characters" />
+        </div>
+      </div>
+    </section>
+
+    {/* ── Step 2: dealership details + brands ─────────────────────── */}
+    <section class="wizard-card" data-step="dealership">
+      <h3>Tell us about your dealership</h3>
+      <p class="wizard-lede">This is what your customers see when the agent answers them.</p>
+      <div class="field-grid">
+        <div class="form-group">
+          <label for="ob-biz">Business name</label>
+          <input type="text" id="ob-biz" placeholder="Carl's Mower &amp; Saw" />
+        </div>
+        <div class="form-group">
+          <label for="ob-hours">Hours</label>
+          <input type="text" id="ob-hours" placeholder="Mon–Fri 8–5, Sat 9–2" />
+        </div>
+      </div>
+      <p class="field-legend">Brands you sell and service</p>
+      <div class="chip-row">
+        {['STIHL', 'Honda', 'Toro', 'Husqvarna', 'Echo', 'Ariens', 'Scag', 'Exmark'].map((brand) => (
+          <label class="chip">
+            <input type="checkbox" />
+            <span>{brand}</span>
+          </label>
+        ))}
+      </div>
+      <p class="wizard-note">
+        We use this to load the parts catalogue for your brands and to match our repair-pricing
+        trees against what you actually sell.
+      </p>
+    </section>
+
+    {/* ── Step 3: phone / porting (Stage A) ───────────────────────── */}
+    <section class="wizard-card" data-step="phone">
+      <h3>Add texting to your phone number</h3>
+      <p class="wizard-lede">
+        Your customers keep calling the same number. We add the ability to text it — your voice
+        service is untouched.
+      </p>
+      <div class="field-grid">
+        <div class="form-group">
+          <label for="ob-phone">Your customer-facing number</label>
+          <input type="tel" id="ob-phone" placeholder="(360) 555-0134" />
+        </div>
+        <div class="form-group">
+          <label for="ob-carrier">Current phone provider</label>
+          <input type="text" id="ob-carrier" placeholder="e.g. Comcast Business" />
+        </div>
+      </div>
+      <div class="notice">
+        <strong>This part takes a few days, and it runs in the background.</strong>
+        <p>
+          Mobile carriers review every business that wants to send texts. We prepare and submit
+          everything for you — you can keep setting up while the review is pending, and we email you
+          the moment it clears.
+        </p>
+      </div>
+    </section>
+
+    {/* ── Step 4: connect Lizzy ───────────────────────────────────── */}
+    <section class="wizard-card" data-step="lizzy">
+      <h3>Connect your Lizzy account</h3>
+      <p class="wizard-lede">
+        This lets the agent recognise your customers and know what equipment they own.
+      </p>
+      <div class="field-grid">
+        <div class="form-group">
+          <label for="ob-lizzy-url">Your Lizzy address</label>
+          <input type="text" id="ob-lizzy-url" placeholder="https://east.nizex.com" />
+        </div>
+        <div class="form-group">
+          <label for="ob-lizzy-user">Lizzy username</label>
+          <input type="text" id="ob-lizzy-user" placeholder="API user" />
+        </div>
+      </div>
+      <label class="consent">
+        <input type="checkbox" />
+        <span>
+          I authorise Leviathan Consulting Group to sign in to my Lizzy account and import my
+          customer and equipment records.
+        </span>
+      </label>
+      <p class="wizard-note">
+        We check the connection straight away and tell you if the account is missing a permission we
+        need — rather than letting you find out later when an order fails.
+      </p>
+    </section>
+
+    {/* ── Step 5: import (progress illustration) ──────────────────── */}
+    <section class="wizard-card" data-step="import">
+      <h3>Importing your customers &amp; equipment</h3>
+      <p class="wizard-lede">You can leave this page — we will email you when it finishes.</p>
+      <ul class="import-list">
+        <li class="import-row is-done">
+          <span class="import-tick">✓</span>
+          <span class="import-label">Customers</span>
+          <span class="import-count">1,148 found</span>
+        </li>
+        <li class="import-row is-done">
+          <span class="import-tick">✓</span>
+          <span class="import-label">Equipment records</span>
+          <span class="import-count">2,731 matched</span>
+        </li>
+        <li class="import-row is-running">
+          <span class="import-tick">·</span>
+          <span class="import-label">Parts catalogue for your brands</span>
+          <span class="import-count">in progress</span>
+        </li>
+      </ul>
+      <p class="wizard-note">
+        Anything we cannot match is listed for you afterwards, so nothing disappears quietly.
+      </p>
+    </section>
+
+    {/* ── Step 6: fast vs full ────────────────────────────────────── */}
+    <section class="wizard-card" data-step="finish">
+      <h3>Choose how you start</h3>
+      <p class="wizard-lede">
+        You can switch between these at any time — nothing here is permanent.
+      </p>
+      <div class="path-grid">
+        <div class="path-card is-recommended">
+          <span class="path-flag">Fastest</span>
+          <h4>Go live on our defaults</h4>
+          <p>
+            Standard repair-pricing, standard welcome message, our parts recommendations. You are
+            ready as soon as the carrier review clears.
+          </p>
+          <span class="path-meta">Nothing more to do</span>
+        </div>
+        <div class="path-card">
+          <h4>Fine-tune everything first</h4>
+          <p>
+            Load your own repair-pricing trees, set pickup and delivery rates, and write your own
+            welcome message before your customers hear from you.
+          </p>
+          <span class="path-meta">About 15 minutes more</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="wizard-actions">
+      <button type="button" class="btn btn-secondary" id="wizardBack" disabled>Back</button>
+      <button type="button" class="btn btn-primary" id="wizardNext">Continue</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const wizard = document.getElementById('wizard');
+  const cards = Array.from(document.querySelectorAll<HTMLElement>('.wizard-card'));
+  const stepItems = Array.from(document.querySelectorAll<HTMLElement>('.wizard-step'));
+  const backBtn = document.getElementById('wizardBack') as HTMLButtonElement | null;
+  const nextBtn = document.getElementById('wizardNext') as HTMLButtonElement | null;
+  const progressFill = document.getElementById('progressFill');
+  const progressNow = document.getElementById('progressNow');
+
+  let current = 0;
+
+  function render() {
+    cards.forEach((card, i) => card.classList.toggle('is-active', i === current));
+
+    stepItems.forEach((item, i) => {
+      item.classList.toggle('is-current', i === current);
+      item.classList.toggle('is-done', i < current);
+    });
+
+    if (progressFill) {
+      progressFill.style.width = `${((current + 1) / cards.length) * 100}%`;
+    }
+    if (progressNow) progressNow.textContent = String(current + 1);
+
+    if (backBtn) backBtn.disabled = current === 0;
+    if (nextBtn) {
+      nextBtn.textContent = current === cards.length - 1 ? 'Finish setup' : 'Continue';
+    }
+
+    // Keep the active card in view on small screens, where the step list and the
+    // panel stack rather than sit side by side.
+    if (window.innerWidth < 900) {
+      wizard?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  nextBtn?.addEventListener('click', () => {
+    if (current < cards.length - 1) {
+      current += 1;
+      render();
+    }
+  });
+
+  backBtn?.addEventListener('click', () => {
+    if (current > 0) {
+      current -= 1;
+      render();
+    }
+  });
+
+  // The overview doubles as navigation: any step already seen can be revisited.
+  stepItems.forEach((item, i) => {
+    item.addEventListener('click', () => {
+      if (i <= current) {
+        current = i;
+        render();
+      }
+    });
+  });
+
+  render();
+</script>
+
+<style>
+  .wizard {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 3rem;
+    align-items: start;
+  }
+
+  /* ── Step overview ─────────────────────────────────────────────── */
+  .wizard-steps {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    position: sticky;
+    top: 120px;
+  }
+
+  .wizard-step {
+    display: flex;
+    gap: 1rem;
+    padding: 0.85rem 0;
+    align-items: flex-start;
+    opacity: 0.5;
+    transition: opacity var(--transition-speed) ease;
+  }
+
+  .wizard-step.is-current,
+  .wizard-step.is-done {
+    opacity: 1;
+  }
+
+  .wizard-step.is-done,
+  .wizard-step.is-current {
+    cursor: pointer;
+  }
+
+  .step-marker {
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 0.85rem;
+    font-weight: 700;
+    background: var(--color-gray-bg);
+    color: var(--color-gray-storm);
+    border: 2px solid transparent;
+    transition: all var(--transition-speed) ease;
+  }
+
+  .wizard-step.is-current .step-marker {
+    background: var(--color-blue-electric);
+    color: var(--color-white);
+    box-shadow: 0 0 0 4px rgba(0, 136, 204, 0.15);
+  }
+
+  .wizard-step.is-done .step-marker {
+    background: var(--color-white);
+    color: var(--color-blue-electric);
+    border-color: var(--color-blue-electric);
+  }
+
+  .step-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .step-stage {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-gray-light);
+  }
+
+  .step-title {
+    font-weight: 600;
+    color: var(--color-navy);
+    line-height: 1.35;
+  }
+
+  /* ── Panel ─────────────────────────────────────────────────────── */
+  .wizard-panel {
+    background: var(--color-white);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-lg);
+    padding: 2.5rem;
+  }
+
+  .wizard-progress {
+    margin-bottom: 2rem;
+  }
+
+  .wizard-progress-bar {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--color-gray-bg);
+    overflow: hidden;
+  }
+
+  .wizard-progress-bar span {
+    display: block;
+    height: 100%;
+    width: 16%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--color-blue-electric), var(--color-blue-bright));
+    transition: width 0.4s ease;
+  }
+
+  .wizard-progress-label {
+    margin: 0.65rem 0 0;
+    font-size: 0.9rem;
+    color: var(--color-gray-storm);
+  }
+
+  .wizard-progress-time {
+    color: var(--color-gray-light);
+  }
+
+  .wizard-card {
+    display: none;
+  }
+
+  .wizard-card.is-active {
+    display: block;
+    animation: cardIn 0.35s ease;
+  }
+
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  .wizard-card h3 {
+    margin-bottom: 0.5rem;
+  }
+
+  .wizard-lede {
+    color: var(--color-gray-storm);
+    margin-bottom: 1.75rem;
+  }
+
+  .field-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  /* Mirrors the contact form on the home page so the two read as one product. */
+  .form-group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .form-group label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--color-navy);
+  }
+
+  .form-group input {
+    padding: 0.75rem;
+    border: 2px solid var(--color-gray-bg);
+    border-radius: 6px;
+    font-family: var(--font-family);
+    font-size: 1rem;
+    transition: border-color var(--transition-speed) ease;
+  }
+
+  .form-group input:focus {
+    outline: none;
+    border-color: var(--color-blue-electric);
+  }
+
+  .field-legend {
+    font-weight: 600;
+    color: var(--color-navy);
+    margin-bottom: 0.75rem;
+  }
+
+  .chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: 2px solid var(--color-gray-bg);
+    border-radius: 999px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all var(--transition-speed) ease;
+  }
+
+  .chip:hover {
+    border-color: var(--color-blue-bright);
+  }
+
+  .chip:has(input:checked) {
+    border-color: var(--color-blue-electric);
+    background: rgba(0, 136, 204, 0.08);
+    color: var(--color-blue-electric);
+  }
+
+  .chip input {
+    accent-color: var(--color-blue-electric);
+  }
+
+  .consent {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    padding: 1rem;
+    background: var(--color-gray-bg);
+    border-radius: 6px;
+    margin-bottom: 1.25rem;
+    cursor: pointer;
+  }
+
+  .consent input {
+    margin-top: 0.25rem;
+    accent-color: var(--color-blue-electric);
+  }
+
+  .wizard-note {
+    font-size: 0.9rem;
+    color: var(--color-gray-storm);
+    margin: 0;
+  }
+
+  .notice {
+    border-left: 4px solid var(--color-blue-electric);
+    background: var(--color-gray-bg);
+    padding: 1.25rem 1.5rem;
+    border-radius: 0 6px 6px 0;
+  }
+
+  .notice strong {
+    color: var(--color-navy);
+    display: block;
+    margin-bottom: 0.4rem;
+  }
+
+  .notice p {
+    margin: 0;
+    color: var(--color-gray-storm);
+    font-size: 0.95rem;
+  }
+
+  /* ── Import illustration ───────────────────────────────────────── */
+  .import-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .import-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    border-radius: 6px;
+    background: var(--color-gray-bg);
+  }
+
+  .import-tick {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+  }
+
+  .import-row.is-done .import-tick {
+    background: var(--color-blue-electric);
+    color: var(--color-white);
+  }
+
+  .import-row.is-running .import-tick {
+    background: var(--color-white);
+    color: var(--color-blue-electric);
+    border: 2px solid var(--color-blue-electric);
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    50% { opacity: 0.35; }
+  }
+
+  .import-label {
+    font-weight: 600;
+    color: var(--color-navy);
+    flex: 1;
+  }
+
+  .import-count {
+    color: var(--color-gray-storm);
+    font-size: 0.9rem;
+  }
+
+  /* ── Fast vs full ──────────────────────────────────────────────── */
+  .path-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+
+  .path-card {
+    position: relative;
+    border: 2px solid var(--color-gray-bg);
+    border-radius: var(--border-radius);
+    padding: 1.75rem 1.5rem 1.5rem;
+    transition: all var(--transition-speed) ease;
+    cursor: pointer;
+  }
+
+  .path-card:hover {
+    border-color: var(--color-blue-bright);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .path-card.is-recommended {
+    border-color: var(--color-blue-electric);
+  }
+
+  .path-flag {
+    position: absolute;
+    top: -11px;
+    left: 1.5rem;
+    background: var(--color-blue-electric);
+    color: var(--color-white);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.7rem;
+    border-radius: 999px;
+  }
+
+  .path-card h4 {
+    margin-bottom: 0.6rem;
+    color: var(--color-navy);
+  }
+
+  .path-card p {
+    color: var(--color-gray-storm);
+    font-size: 0.95rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .path-meta {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-blue-electric);
+  }
+
+  /* ── Actions ───────────────────────────────────────────────────── */
+  .wizard-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 2.5rem;
+    padding-top: 1.75rem;
+    border-top: 1px solid var(--color-gray-bg);
+  }
+
+  .wizard-actions .btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 900px) {
+    .wizard {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+
+    .wizard-steps {
+      position: static;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 0.5rem;
+    }
+
+    .wizard-step {
+      padding: 0.5rem 0;
+    }
+
+    .step-title {
+      font-size: 0.9rem;
+    }
+
+    .wizard-panel {
+      padding: 1.75rem 1.25rem;
+    }
+
+    .field-grid,
+    .path-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
