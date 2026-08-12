@@ -1,6 +1,6 @@
 ---
 /**
- * Dealer self-onboarding wizard — CLICKABLE PREVIEW (GF-7 / #137).
+ * Dealer self-onboarding wizard: CLICKABLE PREVIEW (GF-7 / #137).
  *
  * A front-end prototype of the flow specced in the Dealer Self-Onboarding epic
  * (US-ONB-01…15). Nothing here talks to a backend: no account is created, no
@@ -12,7 +12,7 @@
  *   B. Minimum to Enroll     -> steps "account", "dealership", "lizzy", "import"
  *   C. Complete Full Onboarding -> offered at the end as the "full" path
  *
- * The step list is deliberately shown up front with a time estimate — his
+ * The step list is deliberately shown up front with a time estimate. His
  * requirement from the 2026-06-24 call was that dealers must never feel trapped
  * mid-flow.
  */
@@ -46,7 +46,7 @@ const steps = [
     id: 'import',
     stage: 'Your data',
     title: 'Import customers & equipment',
-    blurb: 'Runs in the background — usually a few minutes.',
+    blurb: 'Runs in the background, usually a few minutes.',
   },
   {
     id: 'finish',
@@ -107,7 +107,7 @@ const steps = [
         </div>
         <div class="form-group">
           <label for="ob-hours">Hours</label>
-          <input type="text" id="ob-hours" placeholder="Mon–Fri 8–5, Sat 9–2" />
+          <input type="text" id="ob-hours" placeholder="Mon-Fri 8-5, Sat 9-2" />
         </div>
       </div>
       <p class="field-legend">Brands you sell and service</p>
@@ -129,8 +129,8 @@ const steps = [
     <section class="wizard-card" data-step="phone">
       <h3>Add texting to your phone number</h3>
       <p class="wizard-lede">
-        Your customers keep calling the same number. We add the ability to text it — your voice
-        service is untouched.
+        Your customers keep calling the same number. We add the ability to text it, and your
+        voice service is untouched.
       </p>
       <div class="field-grid">
         <div class="form-group">
@@ -146,7 +146,7 @@ const steps = [
         <strong>This part takes a few days, and it runs in the background.</strong>
         <p>
           Mobile carriers review every business that wants to send texts. We prepare and submit
-          everything for you — you can keep setting up while the review is pending, and we email you
+          everything for you. You can keep setting up while the review is pending, and we email you
           the moment it clears.
         </p>
       </div>
@@ -177,14 +177,14 @@ const steps = [
       </label>
       <p class="wizard-note">
         We check the connection straight away and tell you if the account is missing a permission we
-        need — rather than letting you find out later when an order fails.
+        need, rather than letting you find out later when an order fails.
       </p>
     </section>
 
     {/* ── Step 5: import (progress illustration) ──────────────────── */}
     <section class="wizard-card" data-step="import">
       <h3>Importing your customers &amp; equipment</h3>
-      <p class="wizard-lede">You can leave this page — we will email you when it finishes.</p>
+      <p class="wizard-lede">You can leave this page. We will email you when it finishes.</p>
       <ul class="import-list">
         <li class="import-row is-done">
           <span class="import-tick">✓</span>
@@ -211,7 +211,7 @@ const steps = [
     <section class="wizard-card" data-step="finish">
       <h3>Choose how you start</h3>
       <p class="wizard-lede">
-        You can switch between these at any time — nothing here is permanent.
+        You can switch between these at any time. Nothing here is permanent.
       </p>
       <div class="path-grid">
         <div class="path-card is-recommended">
