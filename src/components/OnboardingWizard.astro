@@ -213,24 +213,30 @@ const steps = [
       <p class="wizard-lede">
         You can switch between these at any time. Nothing here is permanent.
       </p>
+      {/* Radio inputs rather than click handlers on divs: the choice is keyboard
+          reachable and announced as a choice, with no extra scripting. */}
       <div class="path-grid">
-        <div class="path-card is-recommended">
+        <label class="path-card">
+          <input type="radio" name="onboarding-path" value="fast" checked />
           <span class="path-flag">Fastest</span>
+          <span class="path-check" aria-hidden="true"></span>
           <h4>Go live on our defaults</h4>
           <p>
             Standard repair-pricing, standard welcome message, our parts recommendations. You are
             ready as soon as the carrier review clears.
           </p>
           <span class="path-meta">Nothing more to do</span>
-        </div>
-        <div class="path-card">
+        </label>
+        <label class="path-card">
+          <input type="radio" name="onboarding-path" value="full" />
+          <span class="path-check" aria-hidden="true"></span>
           <h4>Fine-tune everything first</h4>
           <p>
             Load your own repair-pricing trees, set pickup and delivery rates, and write your own
             welcome message before your customers hear from you.
           </p>
           <span class="path-meta">About 15 minutes more</span>
-        </div>
+        </label>
       </div>
     </section>
 
@@ -267,7 +273,16 @@ const steps = [
 
     if (backBtn) backBtn.disabled = current === 0;
     if (nextBtn) {
-      nextBtn.textContent = current === cards.length - 1 ? 'Finish setup' : 'Continue';
+      // On the last step the button reflects the path that is actually selected,
+      // so the choice visibly changes what happens next.
+      if (current === cards.length - 1) {
+        const picked = document.querySelector<HTMLInputElement>(
+          'input[name="onboarding-path"]:checked'
+        )?.value;
+        nextBtn.textContent = picked === 'full' ? 'Continue to setup' : 'Go live';
+      } else {
+        nextBtn.textContent = 'Continue';
+      }
     }
 
     // Keep the active card in view on small screens, where the step list and the
@@ -290,6 +305,10 @@ const steps = [
       render();
     }
   });
+
+  document
+    .querySelectorAll<HTMLInputElement>('input[name="onboarding-path"]')
+    .forEach((radio) => radio.addEventListener('change', render));
 
   // The overview doubles as navigation: any step already seen can be revisited.
   stepItems.forEach((item, i) => {
@@ -627,6 +646,7 @@ const steps = [
 
   .path-card {
     position: relative;
+    display: block;
     border: 2px solid var(--color-gray-bg);
     border-radius: var(--border-radius);
     padding: 1.75rem 1.5rem 1.5rem;
@@ -640,8 +660,49 @@ const steps = [
     box-shadow: var(--shadow-md);
   }
 
-  .path-card.is-recommended {
+  /* The radio drives the state; it is not drawn, the card is. */
+  .path-card input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .path-card:has(input:checked) {
     border-color: var(--color-blue-electric);
+    background: rgba(0, 136, 204, 0.04);
+  }
+
+  /* Keyboard users get a visible focus ring, since the input itself is hidden. */
+  .path-card:has(input:focus-visible) {
+    box-shadow: 0 0 0 4px rgba(0, 136, 204, 0.25);
+  }
+
+  .path-check {
+    position: absolute;
+    top: 1.1rem;
+    right: 1.1rem;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid var(--color-gray-bg);
+    transition: all var(--transition-speed) ease;
+  }
+
+  .path-card:has(input:checked) .path-check {
+    border-color: var(--color-blue-electric);
+    background: var(--color-blue-electric);
+  }
+
+  .path-card:has(input:checked) .path-check::after {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 2px;
+    width: 5px;
+    height: 10px;
+    border: solid var(--color-white);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
   }
 
   .path-flag {
