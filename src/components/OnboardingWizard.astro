@@ -54,6 +54,13 @@ const steps = [
     title: 'Choose how you start',
     blurb: 'Go live on our defaults, or fine-tune everything first.',
   },
+  {
+    id: 'customize',
+    stage: 'Optional',
+    title: 'Make it yours',
+    blurb: 'Only shown if you choose to fine-tune.',
+    optional: true,
+  },
 ];
 ---
 
@@ -61,7 +68,7 @@ const steps = [
   <!-- Up-front overview: every step visible before the dealer commits -->
   <ol class="wizard-steps" id="wizardSteps">
     {steps.map((step, i) => (
-      <li class="wizard-step" data-index={i}>
+      <li class:list={['wizard-step', { 'is-optional': step.optional }]} data-index={i} data-step-id={step.id}>
         <span class="step-marker">{i + 1}</span>
         <span class="step-text">
           <span class="step-stage">{step.stage}</span>
@@ -75,7 +82,7 @@ const steps = [
     <div class="wizard-progress">
       <div class="wizard-progress-bar"><span id="progressFill"></span></div>
       <p class="wizard-progress-label">
-        Step <strong id="progressNow">1</strong> of {steps.length}
+        Step <strong id="progressNow">1</strong> of <span id="progressTotal">{steps.length - 1}</span>
         <span class="wizard-progress-time">· about 20 minutes in total</span>
       </p>
     </div>
@@ -240,6 +247,73 @@ const steps = [
       </div>
     </section>
 
+    {/* Stage C, reached only from the "fine-tune" path */}
+    <section class="wizard-card" data-step="customize">
+      <h3>Make it yours</h3>
+      <p class="wizard-lede">
+        Each of these has a sensible default already in place, so you can set what matters and skip
+        the rest.
+      </p>
+      <ul class="tune-list">
+        <li class="tune-row">
+          <span class="tune-text">
+            <strong>Your own repair pricing</strong>
+            Upload your labour times and rates instead of using our standard tree.
+          </span>
+          <span class="tune-state">Using ours</span>
+        </li>
+        <li class="tune-row">
+          <span class="tune-text">
+            <strong>Pickup and delivery</strong>
+            Offer collection, and set what you charge for it.
+          </span>
+          <span class="tune-state">Not offered</span>
+        </li>
+        <li class="tune-row">
+          <span class="tune-text">
+            <strong>Parts shipping rates</strong>
+            What customers pay to have parts sent out.
+          </span>
+          <span class="tune-state">Flat rate</span>
+        </li>
+        <li class="tune-row">
+          <span class="tune-text">
+            <strong>Your welcome message</strong>
+            The first text your customers receive from you.
+          </span>
+          <span class="tune-state">Standard</span>
+        </li>
+      </ul>
+      <p class="wizard-note">
+        You can change any of this later from your dealer account, so nothing here locks you in.
+      </p>
+    </section>
+
+    {/* Terminal state: no navigation out, the wizard is finished */}
+    <section class="wizard-card wizard-done" data-step="done">
+      <span class="done-mark" aria-hidden="true"></span>
+      <h3>You are all set</h3>
+      <p class="wizard-lede" id="doneLede">
+        Your dealership is configured and your customer list is loaded.
+      </p>
+      <ol class="done-next">
+        <li>
+          <strong>We submit your number for carrier review.</strong>
+          This is the part that takes a few days. We email you the moment it clears.
+        </li>
+        <li>
+          <strong>Your customers get one invitation each.</strong>
+          A single text explaining the service, asking them to reply YES. Nobody is messaged without
+          opting in.
+        </li>
+        <li>
+          <strong>The agent starts answering.</strong>
+          Parts, service bookings, and troubleshooting, on the number they already call.
+        </li>
+      </ol>
+      <button type="button" class="btn btn-secondary" id="wizardRestart">Start over</button>
+    </section>
+
     <div class="wizard-actions">
       <button type="button" class="btn btn-secondary" id="wizardBack" disabled>Back</button>
       <button type="button" class="btn btn-primary" id="wizardNext">Continue</button>
@@ -253,57 +327,108 @@ const steps = [
   const stepItems = Array.from(document.querySelectorAll<HTMLElement>('.wizard-step'));
   const backBtn = document.getElementById('wizardBack') as HTMLButtonElement | null;
   const nextBtn = document.getElementById('wizardNext') as HTMLButtonElement | null;
+  const actions = document.querySelector<HTMLElement>('.wizard-actions');
+  const progress = document.querySelector<HTMLElement>('.wizard-progress');
   const progressFill = document.getElementById('progressFill');
   const progressNow = document.getElementById('progressNow');
+  const progressTotal = document.getElementById('progressTotal');
+  const doneLede = document.getElementById('doneLede');
+  const restartBtn = document.getElementById('wizardRestart');
 
-  let current = 0;
+  /** Which path the dealer picked on the "Choose how you start" step. */
+  function chosenPath(): string {
+    return (
+      document.querySelector<HTMLInputElement>('input[name="onboarding-path"]:checked')?.value ??
+      'fast'
+    );
+  }
+
+  /**
+   * The steps actually in play. "customize" belongs to the full path only, so on
+   * the fast path it is dropped from the sequence, from the step list, and from
+   * the "step N of M" count rather than being shown as a step that gets skipped.
+   */
+  function activeSteps(): string[] {
+    const ids = cards.map((c) => c.dataset.step!).filter((id) => id !== 'done');
+    return chosenPath() === 'full' ? ids : ids.filter((id) => id !== 'customize');
+  }
+
+  let currentId = cards[0]?.dataset.step ?? 'account';
 
   function render() {
-    cards.forEach((card, i) => card.classList.toggle('is-active', i === current));
+    const steps = activeSteps();
+    const isDone = currentId === 'done';
+    const index = steps.indexOf(currentId);
 
-    stepItems.forEach((item, i) => {
-      item.classList.toggle('is-current', i === current);
-      item.classList.toggle('is-done', i < current);
+    cards.forEach((card) => card.classList.toggle('is-active', card.dataset.step === currentId));
+
+    stepItems.forEach((item) => {
+      const id = item.dataset.stepId!;
+      const pos = steps.indexOf(id);
+      const inPath = pos !== -1;
+      item.classList.toggle('is-hidden', !inPath);
+      item.classList.toggle('is-current', !isDone && id === currentId);
+      item.classList.toggle('is-done', isDone || (inPath && pos < index));
     });
 
-    if (progressFill) {
-      progressFill.style.width = `${((current + 1) / cards.length) * 100}%`;
-    }
-    if (progressNow) progressNow.textContent = String(current + 1);
+    // The progress bar and the Back/Continue pair have no meaning once the
+    // wizard has finished, so the terminal card owns the panel on its own.
+    progress?.classList.toggle('is-hidden', isDone);
+    actions?.classList.toggle('is-hidden', isDone);
 
-    if (backBtn) backBtn.disabled = current === 0;
-    if (nextBtn) {
-      // On the last step the button reflects the path that is actually selected,
-      // so the choice visibly changes what happens next.
-      if (current === cards.length - 1) {
-        const picked = document.querySelector<HTMLInputElement>(
-          'input[name="onboarding-path"]:checked'
-        )?.value;
-        nextBtn.textContent = picked === 'full' ? 'Continue to setup' : 'Go live';
-      } else {
-        nextBtn.textContent = 'Continue';
+    if (!isDone) {
+      if (progressFill) progressFill.style.width = `${((index + 1) / steps.length) * 100}%`;
+      if (progressNow) progressNow.textContent = String(index + 1);
+      if (progressTotal) progressTotal.textContent = String(steps.length);
+      if (backBtn) backBtn.disabled = index === 0;
+      if (nextBtn) {
+        nextBtn.textContent =
+          currentId === 'finish'
+            ? chosenPath() === 'full'
+              ? 'Continue to setup'
+              : 'Go live'
+            : currentId === 'customize'
+              ? 'Go live'
+              : 'Continue';
       }
     }
 
-    // Keep the active card in view on small screens, where the step list and the
-    // panel stack rather than sit side by side.
+    if (isDone && doneLede) {
+      doneLede.textContent =
+        chosenPath() === 'full'
+          ? 'Your dealership is configured the way you set it up, and your customer list is loaded.'
+          : 'Your dealership is configured on our standard settings, and your customer list is loaded.';
+    }
+
     if (window.innerWidth < 900) {
       wizard?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }
 
-  nextBtn?.addEventListener('click', () => {
-    if (current < cards.length - 1) {
-      current += 1;
-      render();
-    }
-  });
+  function go(direction: 1 | -1) {
+    const steps = activeSteps();
 
-  backBtn?.addEventListener('click', () => {
-    if (current > 0) {
-      current -= 1;
+    if (currentId === 'done') {
+      if (direction === -1) currentId = steps[steps.length - 1];
       render();
+      return;
     }
+
+    const index = steps.indexOf(currentId);
+    const target = index + direction;
+
+    if (target < 0) return;
+    currentId = target >= steps.length ? 'done' : steps[target];
+    render();
+  }
+
+  nextBtn?.addEventListener('click', () => go(1));
+  backBtn?.addEventListener('click', () => go(-1));
+
+  restartBtn?.addEventListener('click', () => {
+    currentId = 'account';
+    render();
+    wizard?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
   document
@@ -311,10 +436,13 @@ const steps = [
     .forEach((radio) => radio.addEventListener('change', render));
 
   // The overview doubles as navigation: any step already seen can be revisited.
-  stepItems.forEach((item, i) => {
+  stepItems.forEach((item) => {
     item.addEventListener('click', () => {
-      if (i <= current) {
-        current = i;
+      const steps = activeSteps();
+      const pos = steps.indexOf(item.dataset.stepId!);
+      const here = steps.indexOf(currentId);
+      if (pos !== -1 && (currentId === 'done' || pos <= here)) {
+        currentId = steps[pos];
         render();
       }
     });
@@ -749,6 +877,111 @@ const steps = [
   .wizard-actions .btn:disabled {
     opacity: 0.4;
     cursor: not-allowed;
+  }
+
+
+  .is-hidden {
+    display: none !important;
+  }
+
+  .wizard-step.is-optional .step-stage {
+    color: var(--color-blue-electric);
+  }
+
+  /* ── Stage C list ──────────────────────────────────────────────── */
+  .tune-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .tune-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 1.1rem 1.25rem;
+    border: 2px solid var(--color-gray-bg);
+    border-radius: 6px;
+    transition: border-color var(--transition-speed) ease;
+  }
+
+  .tune-row:hover {
+    border-color: var(--color-blue-bright);
+  }
+
+  .tune-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    font-size: 0.95rem;
+    color: var(--color-gray-storm);
+  }
+
+  .tune-text strong {
+    color: var(--color-navy);
+    font-size: 1rem;
+  }
+
+  .tune-state {
+    flex-shrink: 0;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-gray-light);
+    white-space: nowrap;
+  }
+
+  /* ── Terminal card ─────────────────────────────────────────────── */
+  .wizard-done {
+    text-align: center;
+  }
+
+  .done-mark {
+    display: inline-grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--color-blue-electric);
+    margin-bottom: 1.25rem;
+  }
+
+  .done-mark::after {
+    content: '';
+    width: 12px;
+    height: 24px;
+    border: solid var(--color-white);
+    border-width: 0 3px 3px 0;
+    transform: translateY(-3px) rotate(45deg);
+  }
+
+  .done-next {
+    text-align: left;
+    margin: 2rem auto;
+    padding-left: 1.25rem;
+    max-width: 520px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    color: var(--color-gray-storm);
+  }
+
+  .done-next strong {
+    display: block;
+    color: var(--color-navy);
+  }
+
+  @media (max-width: 900px) {
+    .tune-row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
   }
 
   @media (max-width: 900px) {
