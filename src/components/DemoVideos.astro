@@ -1,0 +1,192 @@
+---
+/**
+ * Demo videos of the three SMS workflows (GF-5 / #135, feeds GF-6 / #136).
+ *
+ * Recorded from the admin-ui Simulator against the real workflow engine, so
+ * every screen is what a customer actually receives, not a mockup. Source:
+ * admin-ui/playwright_tests/demo (see that README to re-record).
+ *
+ * Each take stops before anything is submitted: Order Parts ends at checkout
+ * review, Schedule Service at the estimate.
+ */
+
+const videos = [
+  {
+    id: 'order-parts',
+    label: 'Order Parts',
+    blurb: 'A customer picks their machine and orders the part, with live prices and stock.',
+    length: '0:47',
+  },
+  {
+    id: 'troubleshoot',
+    label: 'Troubleshoot Equipment',
+    blurb: 'Guided diagnosis, ending in a repair estimate priced from the shop rate.',
+    length: '1:05',
+  },
+  {
+    id: 'schedule-service',
+    label: 'Schedule Service',
+    blurb: 'Books a tune-up, adds pickup, and returns a full estimate with tax.',
+    length: '1:16',
+  },
+];
+---
+
+<div class="demos">
+  <div class="demo-tabs" role="tablist">
+    {videos.map((v, i) => (
+      <button
+        class:list={['demo-tab', { 'is-active': i === 0 }]}
+        data-target={v.id}
+        role="tab"
+        type="button"
+      >
+        {v.label}
+      </button>
+    ))}
+  </div>
+
+  <div class="demo-stage">
+    {videos.map((v, i) => (
+      <figure class:list={['demo-panel', { 'is-active': i === 0 }]} data-panel={v.id}>
+        <div class="demo-phone">
+          <video
+            src={`/videos/${v.id}.mp4`}
+            poster={`/videos/${v.id}-poster.jpg`}
+            controls
+            playsinline
+            preload="none"
+          ></video>
+        </div>
+        <figcaption class="demo-caption">
+          <h3>{v.label}</h3>
+          <p>{v.blurb}</p>
+          <span class="demo-length">{v.length}</span>
+        </figcaption>
+      </figure>
+    ))}
+  </div>
+</div>
+
+<script>
+  const tabs = Array.from(document.querySelectorAll<HTMLButtonElement>('.demo-tab'));
+  const panels = Array.from(document.querySelectorAll<HTMLElement>('.demo-panel'));
+
+  tabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      const target = tab.dataset.target;
+
+      // Stop whatever was playing, so switching tabs does not leave audio or a
+      // half-played take running out of sight.
+      panels.forEach((panel) => {
+        const video = panel.querySelector('video');
+        if (video && panel.dataset.panel !== target) video.pause();
+        panel.classList.toggle('is-active', panel.dataset.panel === target);
+      });
+
+      tabs.forEach((t) => t.classList.toggle('is-active', t === tab));
+    });
+  });
+</script>
+
+<style>
+  .demo-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 2.5rem;
+  }
+
+  .demo-tab {
+    padding: 0.7rem 1.5rem;
+    border: 2px solid var(--color-gray-bg);
+    border-radius: 999px;
+    background: var(--color-white);
+    font-family: var(--font-family);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-gray-storm);
+    cursor: pointer;
+    transition: all var(--transition-speed) ease;
+  }
+
+  .demo-tab:hover {
+    border-color: var(--color-blue-bright);
+    color: var(--color-blue-electric);
+  }
+
+  .demo-tab.is-active {
+    background: var(--color-blue-electric);
+    border-color: var(--color-blue-electric);
+    color: var(--color-white);
+    box-shadow: var(--shadow-md);
+  }
+
+  .demo-panel {
+    display: none;
+    margin: 0;
+    gap: 3rem;
+    align-items: center;
+  }
+
+  .demo-panel.is-active {
+    display: grid;
+    grid-template-columns: minmax(0, 290px) 1fr;
+    animation: demoIn 0.35s ease;
+  }
+
+  @keyframes demoIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  /* The recording is a portrait phone frame, so it gets a phone-ish shell. */
+  .demo-phone {
+    border-radius: 22px;
+    overflow: hidden;
+    background: var(--color-navy-dark);
+    box-shadow: var(--shadow-lg);
+    line-height: 0;
+  }
+
+  /* The take is a tall portrait frame; cap it so the panel stays a comfortable
+     height on a laptop and the caption sits beside it rather than far below. */
+  .demo-phone video {
+    width: 100%;
+    height: auto;
+    max-height: 560px;
+    display: block;
+  }
+
+  .demo-caption h3 {
+    margin-bottom: 0.75rem;
+  }
+
+  .demo-caption p {
+    color: var(--color-gray-storm);
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+  }
+
+  .demo-length {
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-blue-electric);
+  }
+
+  @media (max-width: 900px) {
+    .demo-panel.is-active {
+      grid-template-columns: 1fr;
+      gap: 1.75rem;
+      justify-items: center;
+      text-align: center;
+    }
+
+    .demo-phone {
+      max-width: 320px;
+    }
+  }
+</style>
