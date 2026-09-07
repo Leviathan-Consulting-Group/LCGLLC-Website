@@ -94,11 +94,28 @@ const steps = [
       <div class="field-grid">
         <div class="form-group">
           <label for="ob-email">Work email</label>
-          <input type="email" id="ob-email" placeholder="you@yourdealership.com" />
+          <input
+            type="email"
+            id="ob-email"
+            placeholder="you@yourdealership.com"
+            required
+            data-required="Enter the email you want to sign in with"
+            data-invalid="That does not look like an email address"
+          />
+          <span class="field-error" data-error-for="ob-email"></span>
         </div>
         <div class="form-group">
           <label for="ob-password">Password</label>
-          <input type="password" id="ob-password" placeholder="At least 12 characters" />
+          <input
+            type="password"
+            id="ob-password"
+            placeholder="At least 12 characters"
+            required
+            minlength="12"
+            data-required="Choose a password"
+            data-invalid="Use at least 12 characters"
+          />
+          <span class="field-error" data-error-for="ob-password"></span>
         </div>
       </div>
     </section>
@@ -110,7 +127,14 @@ const steps = [
       <div class="field-grid">
         <div class="form-group">
           <label for="ob-biz">Business name</label>
-          <input type="text" id="ob-biz" placeholder="Carl's Mower &amp; Saw" />
+          <input
+            type="text"
+            id="ob-biz"
+            placeholder="Carl's Mower &amp; Saw"
+            required
+            data-required="Customers see this name when the agent answers"
+          />
+          <span class="field-error" data-error-for="ob-biz"></span>
         </div>
         <div class="form-group">
           <label for="ob-hours">Hours</label>
@@ -126,6 +150,7 @@ const steps = [
           </label>
         ))}
       </div>
+      <span class="field-error" data-error-for="brands"></span>
       <p class="wizard-note">
         We use this to load the parts catalogue for your brands and to match our repair-pricing
         trees against what you actually sell.
@@ -142,7 +167,16 @@ const steps = [
       <div class="field-grid">
         <div class="form-group">
           <label for="ob-phone">Your customer-facing number</label>
-          <input type="tel" id="ob-phone" placeholder="(360) 555-0134" />
+          <input
+            type="tel"
+            id="ob-phone"
+            placeholder="(360) 555-0134"
+            required
+            data-required="We need the number your customers already call"
+            data-invalid="Enter a 10-digit US number"
+            data-digits="10"
+          />
+          <span class="field-error" data-error-for="ob-phone"></span>
         </div>
         <div class="form-group">
           <label for="ob-carrier">Current phone provider</label>
@@ -168,20 +202,36 @@ const steps = [
       <div class="field-grid">
         <div class="form-group">
           <label for="ob-lizzy-url">Your Lizzy address</label>
-          <input type="text" id="ob-lizzy-url" placeholder="https://east.nizex.com" />
+          <input
+            type="url"
+            id="ob-lizzy-url"
+            placeholder="https://east.nizex.com"
+            required
+            data-required="Enter the web address you use to sign in to Lizzy"
+            data-invalid="Include the full address, starting with https://"
+          />
+          <span class="field-error" data-error-for="ob-lizzy-url"></span>
         </div>
         <div class="form-group">
           <label for="ob-lizzy-user">Lizzy username</label>
-          <input type="text" id="ob-lizzy-user" placeholder="API user" />
+          <input
+            type="text"
+            id="ob-lizzy-user"
+            placeholder="API user"
+            required
+            data-required="Enter the Lizzy user we should sign in as"
+          />
+          <span class="field-error" data-error-for="ob-lizzy-user"></span>
         </div>
       </div>
       <label class="consent">
-        <input type="checkbox" />
+        <input type="checkbox" id="ob-consent" required />
         <span>
           I authorise Leviathan Consulting Group to sign in to my Lizzy account and import my
           customer and equipment records.
         </span>
       </label>
+      <span class="field-error" data-error-for="consent"></span>
       <p class="wizard-note">
         We check the connection straight away and tell you if the account is missing a permission we
         need, rather than letting you find out later when an order fails.
@@ -405,6 +455,98 @@ const steps = [
     }
   }
 
+  /**
+   * Validate the step the wizard is on, and mark up whatever is wrong.
+   *
+   * Built on the browser's own constraint validation (required, type, minlength)
+   * rather than hand-rolled checks, so the rules live in the markup and screen
+   * readers get them for free. Only the messages are ours: the native ones are
+   * terse and vary between browsers.
+   */
+  function validateStep(stepId: string): boolean {
+    const card = cards.find((c) => c.dataset.step === stepId);
+    if (!card) return true;
+
+    let firstBad: HTMLElement | null = null;
+
+    const fail = (field: HTMLElement, key: string, message: string) => {
+      const slot = card.querySelector<HTMLElement>(`[data-error-for="${key}"]`);
+      if (slot) slot.textContent = message;
+      field.classList.add('is-invalid');
+      if (!firstBad) firstBad = field;
+    };
+
+    // Text inputs: let the browser judge, then say it in our own words.
+    card.querySelectorAll<HTMLInputElement>('input[required]:not([type="checkbox"])').forEach((input) => {
+      const slot = card.querySelector<HTMLElement>(`[data-error-for="${input.id}"]`);
+      if (slot) slot.textContent = '';
+      input.classList.remove('is-invalid');
+
+      const value = input.value.trim();
+
+      if (!value) {
+        fail(input, input.id, input.dataset.required ?? 'This field is required');
+        return;
+      }
+
+      // Phone numbers are checked on digit count: people type them with spaces,
+      // brackets and dashes, and a pattern strict enough to catch a real mistake
+      // would reject half of the legitimate ways to write the same number.
+      const digitsWanted = input.dataset.digits;
+      if (digitsWanted) {
+        const digits = value.replace(/\D/g, '').replace(/^1(?=\d{10}$)/, '');
+        if (digits.length !== Number(digitsWanted)) {
+          fail(input, input.id, input.dataset.invalid ?? 'Check this value');
+        }
+        return;
+      }
+
+      if (!input.checkValidity()) {
+        fail(input, input.id, input.dataset.invalid ?? input.validationMessage);
+      }
+    });
+
+    // At least one brand, on the step that has them.
+    const brandSlot = card.querySelector<HTMLElement>('[data-error-for="brands"]');
+    if (brandSlot) {
+      brandSlot.textContent = '';
+      const chips = card.querySelectorAll<HTMLInputElement>('.chip input[type="checkbox"]');
+      const anyChecked = Array.from(chips).some((c) => c.checked);
+      if (chips.length && !anyChecked) {
+        brandSlot.textContent = 'Pick at least one brand you sell or service';
+        const row = card.querySelector<HTMLElement>('.chip-row');
+        if (row) {
+          row.classList.add('is-invalid');
+          if (!firstBad) firstBad = row;
+        }
+      }
+    }
+
+    // The data-pull consent is a hard gate, not a nicety.
+    const consent = card.querySelector<HTMLInputElement>('input[type="checkbox"][required]');
+    const consentSlot = card.querySelector<HTMLElement>('[data-error-for="consent"]');
+    if (consent && consentSlot) {
+      consentSlot.textContent = '';
+      consent.closest('.consent')?.classList.remove('is-invalid');
+      if (!consent.checked) {
+        consentSlot.textContent = 'We need your authorisation before importing anything';
+        const box = consent.closest<HTMLElement>('.consent');
+        if (box) {
+          box.classList.add('is-invalid');
+          if (!firstBad) firstBad = box;
+        }
+      }
+    }
+
+    if (firstBad) {
+      (firstBad as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'center' });
+      (firstBad as HTMLElement).querySelector('input')?.focus({ preventScroll: true });
+      if (firstBad instanceof HTMLInputElement) firstBad.focus({ preventScroll: true });
+      return false;
+    }
+    return true;
+  }
+
   function go(direction: 1 | -1) {
     const steps = activeSteps();
 
@@ -418,6 +560,8 @@ const steps = [
     const target = index + direction;
 
     if (target < 0) return;
+    // Going back never validates: a dealer must always be able to retreat.
+    if (direction === 1 && !validateStep(currentId)) return;
     currentId = target >= steps.length ? 'done' : steps[target];
     render();
   }
@@ -429,6 +573,28 @@ const steps = [
     currentId = 'account';
     render();
     wizard?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  // Clear a field's error as soon as the dealer starts fixing it, rather than
+  // making them press Continue again to find out whether it is happy now.
+  document.querySelectorAll<HTMLInputElement>('.wizard-card input').forEach((input) => {
+    const clear = () => {
+      input.classList.remove('is-invalid');
+      const card = input.closest('.wizard-card');
+      if (!card) return;
+      if (input.id) {
+        const slot = card.querySelector<HTMLElement>(`[data-error-for="${input.id}"]`);
+        if (slot) slot.textContent = '';
+      }
+      if (input.type === 'checkbox') {
+        card.querySelector('.chip-row')?.classList.remove('is-invalid');
+        input.closest('.consent')?.classList.remove('is-invalid');
+        const slot = card.querySelector<HTMLElement>('[data-error-for="brands"], [data-error-for="consent"]');
+        if (slot) slot.textContent = '';
+      }
+    };
+    input.addEventListener('input', clear);
+    input.addEventListener('change', clear);
   });
 
   document
@@ -626,6 +792,38 @@ const steps = [
   .form-group input:focus {
     outline: none;
     border-color: var(--color-blue-electric);
+  }
+
+  /* ── Validation ────────────────────────────────────────────────── */
+  .field-error {
+    display: block;
+    min-height: 1.1rem;
+    margin-top: 0.4rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #c0392b;
+  }
+
+  .field-error:empty {
+    min-height: 0;
+    margin-top: 0;
+  }
+
+  .form-group input.is-invalid {
+    border-color: #c0392b;
+    background: rgba(192, 57, 43, 0.03);
+  }
+
+  .form-group input.is-invalid:focus {
+    border-color: #c0392b;
+    box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.15);
+  }
+
+  .chip-row.is-invalid,
+  .consent.is-invalid {
+    outline: 2px solid #c0392b;
+    outline-offset: 4px;
+    border-radius: 6px;
   }
 
   .field-legend {
