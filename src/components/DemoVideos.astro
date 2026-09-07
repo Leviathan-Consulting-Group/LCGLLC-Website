@@ -53,10 +53,16 @@ const videos = [
           <video
             src={`/videos/${v.id}.mp4`}
             poster={`/videos/${v.id}-poster.jpg`}
-            controls
             playsinline
             preload="none"
           ></video>
+          {/* Cover shown until the take starts: without it the poster frame is
+              just a screenshot, and a still of a text thread does not read as
+              something you can play. */}
+          <button class="demo-cover" type="button" aria-label={`Play the ${v.label} demo`}>
+            <span class="demo-cover-play" aria-hidden="true"></span>
+            <span class="demo-cover-length">{v.length}</span>
+          </button>
         </div>
         <figcaption class="demo-caption">
           <h3>{v.label}</h3>
@@ -86,6 +92,24 @@ const videos = [
 
       tabs.forEach((t) => t.classList.toggle('is-active', t === tab));
     });
+  });
+
+  panels.forEach((panel) => {
+    const video = panel.querySelector<HTMLVideoElement>('video');
+    const cover = panel.querySelector<HTMLButtonElement>('.demo-cover');
+    if (!video || !cover) return;
+
+    cover.addEventListener('click', () => video.play());
+
+    // Native controls are added on first play rather than in the markup: before
+    // that they sit on top of the cover, competing with the play button and
+    // overlapping the duration badge.
+    video.addEventListener('play', () => { video.controls = true; }, { once: true });
+
+    // Driven by the video's own events rather than by the click, so the cover
+    // stays in step when the viewer uses the native controls instead.
+    video.addEventListener('play', () => panel.classList.add('is-playing'));
+    video.addEventListener('ended', () => panel.classList.remove('is-playing'));
   });
 </script>
 
@@ -143,6 +167,7 @@ const videos = [
 
   /* The recording is a portrait phone frame, so it gets a phone-ish shell. */
   .demo-phone {
+    position: relative;
     border-radius: 22px;
     overflow: hidden;
     background: var(--color-navy-dark);
@@ -157,6 +182,85 @@ const videos = [
     height: auto;
     max-height: 560px;
     display: block;
+  }
+
+  /* ── Play cover ────────────────────────────────────────────────── */
+  .demo-cover {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    font-family: var(--font-family);
+    /* Even wash rather than a vignette: the conversation reads through it, but
+       nothing competes with the play button for attention. */
+    background: rgba(13, 27, 42, 0.42);
+    transition: background var(--transition-speed) ease, opacity 0.35s ease,
+      visibility 0.35s ease;
+  }
+
+  .demo-cover:hover {
+    background: rgba(13, 27, 42, 0.3);
+  }
+
+  .demo-panel.is-playing .demo-cover {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  .demo-cover-play {
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    background: var(--color-blue-electric);
+    /* A ring of its own colour lifts the button off whatever text sits behind
+       it, so it never reads as part of the conversation. */
+    box-shadow:
+      0 0 0 10px rgba(0, 136, 204, 0.25),
+      0 12px 32px rgba(0, 0, 0, 0.45);
+    display: grid;
+    place-items: center;
+    transition: transform var(--transition-speed) ease, background var(--transition-speed) ease,
+      box-shadow var(--transition-speed) ease;
+  }
+
+  /* Triangle from a border, so the button needs no icon asset. */
+  .demo-cover-play::after {
+    content: '';
+    border-style: solid;
+    border-width: 13px 0 13px 21px;
+    border-color: transparent transparent transparent var(--color-white);
+    margin-left: 5px;
+  }
+
+  .demo-cover:hover .demo-cover-play,
+  .demo-cover:focus-visible .demo-cover-play {
+    transform: scale(1.08);
+    background: var(--color-blue-bright);
+    box-shadow:
+      0 0 0 14px rgba(0, 170, 255, 0.25),
+      0 12px 32px rgba(0, 0, 0, 0.45);
+  }
+
+  .demo-cover:focus-visible {
+    outline: 3px solid var(--color-blue-bright);
+    outline-offset: -3px;
+  }
+
+  /* Bottom corner, out of the way of the thread and of the play button. */
+  .demo-cover-length {
+    position: absolute;
+    right: 0.9rem;
+    bottom: 1.1rem;
+    color: var(--color-white);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    padding: 0.25rem 0.6rem;
+    border-radius: 6px;
+    background: rgba(13, 27, 42, 0.8);
   }
 
   .demo-caption h3 {
