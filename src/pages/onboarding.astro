@@ -142,11 +142,16 @@ import DemoVideos from '../components/DemoVideos.astro';
     margin: 0 auto 3rem;
   }
 
+  /* Equal columns rather than flex: the three labels differ a lot in length
+     ("to set up" against "customers and equipment from Lizzy"), so auto-width
+     columns put most of the visual weight on the right and the row reads as
+     off-centre even though the container itself is centred. */
   .onboarding-facts {
-    display: flex;
-    justify-content: center;
-    gap: 3.5rem;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2rem;
+    max-width: 840px;
+    margin: 0 auto;
   }
 
   .fact {
@@ -163,6 +168,14 @@ import DemoVideos from '../components/DemoVideos.astro';
   .fact span {
     font-size: 0.9rem;
     color: rgba(255, 255, 255, 0.7);
+  }
+
+  /* .section-title is defined inside index.astro, where Astro scopes it to that
+     page, so it does not reach this one: the headings were rendering
+     left-aligned under centred intro text. */
+  .section-title {
+    text-align: center;
+    margin-bottom: 1.5rem;
   }
 
   .demos-section {
@@ -245,7 +258,8 @@ import DemoVideos from '../components/DemoVideos.astro';
     }
 
     .onboarding-facts {
-      gap: 2rem;
+      grid-template-columns: 1fr;
+      gap: 1.75rem;
     }
   }
 </style>
